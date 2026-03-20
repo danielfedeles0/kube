@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hr-config
+data:
+  # Requirement 1: Application Message
+  APP_MESSAGE: "Welcome to HR Employee Management Portal"
+  
+  # Requirement 4: Policy File Content
+  policy.txt: |
+    leave_policy=standard
+    max_leaves=24

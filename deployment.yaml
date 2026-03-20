@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hr-employee-management
+spec:
+  replicas: 2 # Requirement 5
+  selector:
+    matchLabels:
+      app: hr-system
+  template:
+    metadata:
+      labels:
+        app: hr-system
+    spec:
+      containers:
+      - name: hr-service
+        image: nginx:latest # Constraint: Do NOT modify image
+        ports:
+        - containerPort: 80
+        env:
+          # Requirement 1: Dynamic Message
+          - name: APP_MESSAGE
+            valueFrom:
+              configMapKeyRef:
+                name: hr-config
+                key: APP_MESSAGE
+          # Requirement 2: HR Mode
+          - name: HR_MODE
+            value: "internal"
+          # Requirement 3: Database Credentials (Securely handled)
+          - name: DB_USER
+            valueFrom:
+              secretKeyRef:
+                name: hr-db-credentials
+                key: DB_USER
+          - name: DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: hr-db-credentials
+                key: DB_PASSWORD
+        volumeMounts:
+          # Requirement 4: Policy File Requirement
+          - name: policy-volume
+            mountPath: /hr/config
+            readOnly: true
+      volumes:
+        - name: policy-volume
+          configMap:
+            name: hr-config
+            items:
+              - key: policy.txt
+                path: policy.txt
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hr-service
+spec:
+  selector:
+    app: hr-system
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: ClusterIP # Requirement 5: Internal Service
